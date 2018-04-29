@@ -37,7 +37,7 @@ export const initSocket = () => {
 			// 		throw Error('THE FUCKING TIME TRAVEL IS BACK AGAIN!')
 			// 	}
 			// }
-			return msg.type.includes('trade') && console.log(`TRADE MESSAGE:: \n${msg}`);
+			return msg.type.includes('trade') && console.log(`TRADE MESSAGE:: \n${msg.time}`);
 		});
 	});
 };

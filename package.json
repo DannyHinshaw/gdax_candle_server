@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/DannyHinshaw/gdax_candle_server#readme",
   "dependencies": {
+    "@types/express": "^4.11.1",
     "@types/node": "^10.0.0",
+    "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "gdax": "^0.7.0",
     "gdax-trading-toolkit": "^0.3.1"
