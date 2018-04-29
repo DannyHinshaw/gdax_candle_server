@@ -1,0 +1,26 @@
+{
+  "name": "gdax_candle_server",
+  "version": "1.0.0",
+  "description": "Simple API to serve up-to-date GDAX candles.",
+  "main": "index.js",
+  "scripts": {
+    "setup": "npm i -g typescript ts-node && npm i @types/node && npm i",
+    "start": "ts-node index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DannyHinshaw/gdax_candle_server.git"
+  },
+  "author": "Danny Hinshaw",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DannyHinshaw/gdax_candle_server/issues"
+  },
+  "homepage": "https://github.com/DannyHinshaw/gdax_candle_server#readme",
+  "dependencies": {
+    "@types/node": "^10.0.0",
+    "express": "^4.16.3",
+    "gdax": "^0.7.0",
+    "gdax-trading-toolkit": "^0.3.1"
+  }
+}
