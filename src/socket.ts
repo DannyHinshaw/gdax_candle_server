@@ -5,6 +5,7 @@ import {auth, options, product} from '../config';
 
 // App level
 import {logger, prettyPrint} from '../utils/logger';
+import {candleSwitch} from './candles';
 
 
 /* GTT Functions
@@ -37,7 +38,7 @@ export const initSocket = () => {
 			// 		throw Error('THE FUCKING TIME TRAVEL IS BACK AGAIN!')
 			// 	}
 			// }
-			return msg.type.includes('trade') && console.log(`TRADE MESSAGE:: \n${msg.time}`);
+			return msg.type.includes('trade') && candleSwitch(msg);
 		});
 	});
 };
