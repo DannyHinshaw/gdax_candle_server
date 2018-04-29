@@ -24,7 +24,7 @@ export const closeCandle = () => {
 
 	candles.push(CURRENT_CANDLE);
 	CURRENT_CANDLE = [];
-	
+
 	return logger.log('info', `CurrentCandle: ${CURRENT_CANDLE}`);
 };
 
