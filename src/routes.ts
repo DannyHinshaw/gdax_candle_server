@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import {Request, RequestHandler, Response} from 'express-serve-static-core';
 import {logger} from '../utils/logger';
+import {getCandles} from './candles';
 
 // create application/json parser
 const jsonParser: RequestHandler = bodyParser.json();
@@ -21,6 +22,6 @@ export const routes = (app: express.Application) => {
 		logger.log('info', `Express::GET::Candles::\n${JSON.stringify(req.headers, null, 2)}`);
 		res.setHeader('Content-Type', 'application/json');
 
-		return res.status(200).send({test: 'JSON'});
+		return res.status(200).send({candles: getCandles()});
 	});
 };

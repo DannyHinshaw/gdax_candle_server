@@ -1,14 +1,31 @@
 import * as moment from 'moment';
 import {TradeMessage} from 'gdax-trading-toolkit/build/src/core';
 import {roundToCurrentMinute, roundToCurrentMinuteMS} from '../utils/time';
+import {logger} from '../utils/logger';
 
 
 let CURRENT_CANDLE: number[] = [];
-export const candles: number[][] = [];
+const candles: number[][] = [];
 
+/**
+ * Return uncached candles history.
+ * @returns {number[][]}
+ */
+export const getCandles = (): number[][] => {
+	return candles;
+};
+
+/**
+ * Close out the current minute candle and ready state for next.
+ */
 export const closeCandle = () => {
+	// Only store 30 days max
+	if (candles.length > 43200) candles.shift();
+
 	candles.push(CURRENT_CANDLE);
-	return CURRENT_CANDLE = [];
+	CURRENT_CANDLE = [];
+	
+	return logger.log('info', `CurrentCandle: ${CURRENT_CANDLE}`);
 };
 
 /**
@@ -25,25 +42,6 @@ const isLatent = (ts: number) => {
 };
 
 /**
- * Amend the last candle in running history,
- * @param payload
- * @returns {number}
- */
-const amendCandle = (payload) => {
-	const lastCandle: number[] = candles.pop();
-	return candles.push(updateCandle(lastCandle, payload));
-};
-
-/**
- * Maintain the current running minute candle.
- * @param payload
- * @returns {number[]}
- */
-const maintainCandle = (payload) => {
-	return CURRENT_CANDLE = updateCandle(CURRENT_CANDLE, payload);
-};
-
-/**
  * Create an updated or new minute candle.
  * @param {number[]} cc - The current candle to update.
  * @param {any} time
@@ -51,11 +49,11 @@ const maintainCandle = (payload) => {
  * @param {any} size
  * @returns {number[]}
  */
-export const updateCandle = (cc: number[], {time, price, size}) => {
+const updateCandle = (cc: number[], {time, price, size}) => {
 	const returnCandle: number[] = [
 
 		// time
-		roundToCurrentMinute(cc.length ? cc[0] : time),
+		cc.length ? cc[0] : roundToCurrentMinute(time),
 
 		// low
 		cc.length
@@ -74,16 +72,32 @@ export const updateCandle = (cc: number[], {time, price, size}) => {
 		price,
 
 		// volume
-		cc.length ? cc[5] += size : cc[5]
+		cc.length && cc[5] ? cc[5] + size : size
 	];
-
-	console.log('time::', time);
-	console.log('price::', price);
-	console.log('price::', size);
 	console.log(returnCandle);
 
 	return returnCandle;
 };
+
+/**
+ * Amend the last candle in running history,
+ * @param payload
+ * @returns {number}
+ */
+const amendCandle = (payload) => {
+	const lastCandle: number[] = candles[candles.length - 1];
+	return candles.push(updateCandle(lastCandle, payload));
+};
+
+/**
+ * Maintain the current running minute candle.
+ * @param payload
+ * @returns {number[]}
+ */
+const maintainCandle = (payload) => {
+	return CURRENT_CANDLE = updateCandle(CURRENT_CANDLE, payload);
+};
+
 
 /**
  * Route the data to the proper candle handler function.
@@ -91,7 +105,7 @@ export const updateCandle = (cc: number[], {time, price, size}) => {
  */
 export const candleSwitch = (msg: TradeMessage) => {
 	const ts   : number = moment(msg.time).valueOf();
-	const time : number = ts / 1000;
+	const time : number = moment(msg.time).unix();
 	const price: number = +msg.price;
 	const size : number = +msg.size;
 	const payload: any = {time: time, price: price, size: size};
