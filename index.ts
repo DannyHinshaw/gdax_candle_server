@@ -18,7 +18,7 @@ initSocket().then(() => {
 	const server = app.listen(5000, () => {
 		return logger.log('debug', `***Server started, running on port ${server.address().port}***`);
 	});
-	
+
 	return server;
 }).catch(err => {
 	return logger.log('error', `InitSocket Error: \n${err}`)
