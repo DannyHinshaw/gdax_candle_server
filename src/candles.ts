@@ -19,13 +19,26 @@ export const getCandles = (): number[][] => {
  * Close out the current minute candle and ready state for next.
  */
 export const closeCandle = () => {
+
+	// If there's not data and it's the first candle, skip storage
+	if (!CURRENT_CANDLE.length && !candles.length) return;
+
 	// Only store 30 days max
 	if (candles.length > 43200) candles.shift();
 
-	candles.push(CURRENT_CANDLE);
+	// If no trades happen we resubmit the previous candle data with new timestamp.
+	const candle: number[] = CURRENT_CANDLE.length
+		? CURRENT_CANDLE
+		: updateCandle([], {
+			time : moment().unix() - 5, // Current time with 5 second buffer
+			price: candles[candles.length - 1][4], // Last candle close price
+			size : 0
+		});
+
+	candles.push(candle);
 	CURRENT_CANDLE = [];
 
-	return logger.log('info', `CurrentCandle: ${CURRENT_CANDLE}`);
+	return logger.log('info', `Closed candle: ${candle}`);
 };
 
 /**
@@ -53,7 +66,8 @@ const updateCandle = (cc: number[], {time, price, size}) => {
 	const returnCandle: number[] = [
 
 		// time
-		cc.length ? cc[0] : roundToCurrentMinute(time),
+		// cc.length ? cc[0] : roundToCurrentMinute(time),
+		roundToCurrentMinute(time),
 
 		// low
 		cc.length
@@ -74,7 +88,7 @@ const updateCandle = (cc: number[], {time, price, size}) => {
 		// volume
 		cc.length && cc[5] ? cc[5] + size : size
 	];
-	console.log(returnCandle);
+	// console.log(returnCandle);
 
 	return returnCandle;
 };
