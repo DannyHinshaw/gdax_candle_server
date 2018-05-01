@@ -8,11 +8,11 @@ let CURRENT_CANDLE: number[] = [];
 const candles: number[][] = [];
 
 /**
- * Return uncached candles history.
+ * Return uncached candles history with the latest current running candle.
  * @returns {number[][]}
  */
 export const getCandles = (): number[][] => {
-	return candles;
+	return candles.concat([CURRENT_CANDLE]);
 };
 
 /**
