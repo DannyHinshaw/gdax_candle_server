@@ -5,7 +5,14 @@ import {logger} from '../utils/logger';
 
 
 let CURRENT_CANDLE: number[] = [];
+let NEXT_CANDLE: number[] = [];
 const candles: number[][] = [];
+
+interface CandlePayloadInterface {
+	time: number
+	price: number
+	size: number
+}
 
 /**
  * Return uncached candles history with the latest current running candle.
@@ -36,25 +43,17 @@ export const closeCandle = (): any => {
 		});
 
 	candles.push(candle);
-	CURRENT_CANDLE = [];
 
+	if (NEXT_CANDLE.length) {
+		CURRENT_CANDLE = NEXT_CANDLE;
+		NEXT_CANDLE = [];
+	} else {
+		CURRENT_CANDLE = [];
+	}
 	// return logger.log('info', `Closed candle: ${candle}`);
 	// FIXME: Easy read for GDAX testing.
 	const gdaxCandle: string = `O: ${candle[3]}, H: ${candle[2]}, L: ${candle[1]}, C: ${candle[4]}, V: ${candle[5]}`;
 	return logger.log('info', `Closed candle: \n${gdaxCandle}`);
-};
-
-/**
- * Test if the current trade belongs to the previous minute candle.
- * @param ts - TradeMessage timestamp (in ms).
- * @returns {boolean}
- */
-const isLatent = (ts: number) => {
-	const curr: number = roundToCurrentMinuteMS(+new Date());
-
-	if (ts < curr) console.log('Latency (if negative):: ', curr - ts);
-
-	return CURRENT_CANDLE.length && ts < curr;
 };
 
 /**
@@ -65,22 +64,22 @@ const isLatent = (ts: number) => {
  * @param {number} size
  * @returns {number[]}
  */
-const updateCandle = (cc: number[], {time, price, size}) => {
+const updateCandle = (cc: number[], {time, price, size}): number[] => {
 	const returnCandle: number[] = [
 		roundToCurrentMinute(time),
 
 		// low
 		cc.length
 			? cc[1] > price
-				? price
-				: cc[1]
+			? price
+			: cc[1]
 			: price,
 
 		// high
 		cc.length
 			? cc[2] < price
-				? price
-				: cc[2]
+			? price
+			: cc[2]
 			: price,
 
 		// open
@@ -98,9 +97,38 @@ const updateCandle = (cc: number[], {time, price, size}) => {
 			? cc[5] + size
 			: size
 	];
-	// console.log(returnCandle);
-
 	return returnCandle;
+};
+
+/**
+ * Test if the current trade belongs to the previous minute candle.
+ * @param ts - TradeMessage timestamp (in ms).
+ * @returns {boolean}
+ */
+const isLate = (ts: number) => {
+	const currMinuteMS: number = roundToCurrentMinuteMS(+new Date());
+	const assertIsLate: boolean = ts < currMinuteMS;
+
+	if (assertIsLate) console.log('Lateness in seconds (if negative):: ', (currMinuteMS - ts) / 1000);
+
+	return CURRENT_CANDLE.length && assertIsLate;
+};
+
+/**
+ * Test if the current trade belongs to the next minute candle (cron job lag).
+ * @param ts - TradeMessage timestamp (in ms).
+ * @returns {boolean}
+ */
+const isEarly = (ts: number): boolean => {
+	const currMinuteMS: number = roundToCurrentMinuteMS(+new Date());
+	const assertIsEarly: boolean = ts > currMinuteMS + 60000;
+
+	//TODO: FINISH FIXING ORDERS ON NEXT MINUTE THAT BEAT CRON
+	console.log('IS_EARLY::ts          ', ts);
+	console.log('IS_EARLY::currMinuteMS', currMinuteMS);
+	if (assertIsEarly) console.log('Earliness in seconds (if negative):: ', (currMinuteMS + 60000 - ts) / 1000);
+
+	return CURRENT_CANDLE.length && assertIsEarly;
 };
 
 /**
@@ -108,7 +136,7 @@ const updateCandle = (cc: number[], {time, price, size}) => {
  * @param payload
  * @returns {number}
  */
-const amendCandle = (payload) => {
+const amendCandle = (payload: CandlePayloadInterface): number => {
 	const lastCandle: number[] = candles[candles.length - 1];
 	return candles.push(updateCandle(lastCandle, payload));
 };
@@ -118,14 +146,23 @@ const amendCandle = (payload) => {
  * @param payload
  * @returns {number[]}
  */
-const maintainCandle = (payload) => {
+const maintainCurrentCandle = (payload: CandlePayloadInterface): number[] => {
 	return CURRENT_CANDLE = updateCandle(CURRENT_CANDLE, payload);
 };
 
+/**
+ * Updates the NEXT_CANDLE objects to fix cron time drift.
+ * @param {CandlePayloadInterface} payload
+ * @returns {number[]}
+ */
+const maintainNextCandle = (payload: CandlePayloadInterface): number[] => {
+	return NEXT_CANDLE = updateCandle(NEXT_CANDLE, payload);
+};
 
 /**
  * Route the data to the proper candle handler function.
  * @param {TradeMessage} msg
+ * @returns {number | number[]}
  */
 export const candleSwitch = (msg: TradeMessage) => {
 	const ts   : number = moment(msg.time).valueOf();
@@ -133,8 +170,10 @@ export const candleSwitch = (msg: TradeMessage) => {
 	const price: number = +msg.price;
 	const size : number = +msg.size;
 	const payload: any = {time: time, price: price, size: size};
-
-	return isLatent(ts)
+	console.log('PRICE::', price, String(price).includes('.') ? '' : '   ', 'TIME::', msg.time.toLocaleTimeString());
+	return isLate(ts)
 		? amendCandle(payload)
-		: maintainCandle(payload);
+		: isEarly(payload)
+			? maintainNextCandle(payload)
+			: maintainCurrentCandle(payload);
 };
