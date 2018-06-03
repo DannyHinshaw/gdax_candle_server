@@ -35,14 +35,18 @@ export const isCurrentMinute = (ts: number): boolean => {
  * @param {number} unixTS - Unix timestamp
  * @returns {number} - Unix timestamp rounded down to current minute.
  */
-export const roundToCurrentMinute = (unixTS: number) => Math.floor((unixTS - 1) / 60) * 60;
+export const roundToCurrentMinute = (unixTS: number) => {
+	return unixTS % 60 === 0 ? unixTS : Math.floor((unixTS - 1) / 60) * 60;
+};
 
 /**
  * Takes a millisecond unix timestamp and rounds it down to the currently running minute.
  * @param {number} unixTS - Unix timestamp
  * @returns {number} - Unix timestamp rounded down to current minute.
  */
-export const roundToCurrentMinuteMS = (unixTS: number) => Math.floor((unixTS - 1) / 600000) * 600000;
+export const roundToCurrentMinuteMS = (unixTS: number) => {
+	return unixTS % 600000 === 0 ? unixTS : Math.floor((unixTS - 1) / 600000) * 600000;
+};
 
 /**
  * Takes a 2D candles array and groups them by days.

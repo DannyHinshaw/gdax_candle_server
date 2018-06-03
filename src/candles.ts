@@ -18,7 +18,7 @@ export const getCandles = (): number[][] => {
 /**
  * Close out the current minute candle and ready state for next.
  */
-export const closeCandle = () => {
+export const closeCandle = (): any => {
 
 	// If there's not data and it's the first candle, skip storage
 	if (!CURRENT_CANDLE.length && !candles.length) return;
@@ -38,7 +38,10 @@ export const closeCandle = () => {
 	candles.push(candle);
 	CURRENT_CANDLE = [];
 
-	return logger.log('info', `Closed candle: ${candle}`);
+	// return logger.log('info', `Closed candle: ${candle}`);
+	// FIXME: Easy read for GDAX testing.
+	const gdaxCandle: string = `O: ${candle[3]}, H: ${candle[2]}, L: ${candle[1]}, C: ${candle[4]}, V: ${candle[5]}`;
+	return logger.log('info', `Closed candle: \n${gdaxCandle}`);
 };
 
 /**
@@ -57,36 +60,43 @@ const isLatent = (ts: number) => {
 /**
  * Create an updated or new minute candle.
  * @param {number[]} cc - The current candle to update.
- * @param {any} time
- * @param {any} price
- * @param {any} size
+ * @param {number} time
+ * @param {number} price
+ * @param {number} size
  * @returns {number[]}
  */
 const updateCandle = (cc: number[], {time, price, size}) => {
 	const returnCandle: number[] = [
-
-		// time
-		// cc.length ? cc[0] : roundToCurrentMinute(time),
 		roundToCurrentMinute(time),
 
 		// low
 		cc.length
-			? cc[1] > price ? price : cc[1]
+			? cc[1] > price
+				? price
+				: cc[1]
 			: price,
 
 		// high
 		cc.length
-			? cc[2] < price ? price : cc[2]
+			? cc[2] < price
+				? price
+				: cc[2]
 			: price,
 
 		// open
-		cc.length ? cc[3] : price,
+		cc.length
+			? cc[3]
+			: price,
 
 		// close
-		price,
+		cc.length && cc[0] === time
+			? cc[4]
+			: price,
 
 		// volume
-		cc.length && cc[5] ? cc[5] + size : size
+		cc.length && cc[5]
+			? cc[5] + size
+			: size
 	];
 	// console.log(returnCandle);
 
