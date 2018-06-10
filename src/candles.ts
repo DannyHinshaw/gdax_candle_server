@@ -100,40 +100,33 @@ const updateCandle = (cc: number[], {time, price, size}): number[] => {
 
 /**
  * Test if the current trade belongs to the previous minute candle.
- * @param ts - TradeMessage timestamp (in ms).
+ * @param {number} ts - TradeMessage timestamp (in ms).
  * @returns {boolean}
  */
-const isLate = (ts) => {
+const isLate = (ts: number): boolean => {
 	const currMinuteMS: number = roundToCurrentMinuteMS(+new Date());
 	const assertIsLate: boolean = ts < currMinuteMS;
 
-	if (assertIsLate) console.log('Lateness in seconds (if negative):: ', (currMinuteMS - ts) / 1000);
+	// if (assertIsLate) console.log('Lateness in seconds (if negative):: ', (currMinuteMS - ts) / 1000);
 
 	return CURRENT_CANDLE.length && assertIsLate;
 };
 
 /**
  * Test if the current trade belongs to the next minute candle (cron job lag).
- * @param time - TradeMessage timestamp (in ms).
+ * @param {number} time - TradeMessage timestamp (in ms).
  * @returns {boolean}
  */
-const isEarly = (time): boolean => {
+const isEarly = (time: number): boolean => {
 	const currMinute: number = CURRENT_CANDLE[0];
 	const assertIsEarly: boolean = time > currMinute + 60;
-
-	//TODO: FINISH FIXING ORDERS ON NEXT MINUTE THAT BEAT CRON
-	if (assertIsEarly) {
-		console.log('\nIS_EARLY::ts          ', time);
-		console.log('IS_EARLY::currMinuteMS', currMinute, '\n');
-		console.log('Earliness in seconds (if negative):: ', (currMinute + 60 - time) / 1000);
-	}
 
 	return CURRENT_CANDLE.length && assertIsEarly;
 };
 
 /**
  * Amend the last candle in running history,
- * @param payload
+ * @param {CandlePayloadInterface} payload
  * @returns {number}
  */
 const amendCandle = (payload: CandlePayloadInterface): number => {
@@ -143,7 +136,7 @@ const amendCandle = (payload: CandlePayloadInterface): number => {
 
 /**
  * Maintain the current running minute candle.
- * @param payload
+ * @param {CandlePayloadInterface} payload
  * @returns {number[]}
  */
 const maintainCurrentCandle = (payload: CandlePayloadInterface): number[] => {
@@ -172,9 +165,9 @@ export const candleSwitch = (msg: TradeMessage) => {
 	const payload: CandlePayloadInterface = {time: time, price: price, size: size};
 	const timeFormatted: string = msg.time.toLocaleTimeString();
 
-	if (timeFormatted.trim().endsWith('00') || timeFormatted.trim().endsWith('59')) {
-		console.log('PRICE::', price, String(price).includes('.') ? '' : '   ', 'TIME::', timeFormatted);
-	}
+	// if (timeFormatted.trim().endsWith('00') || timeFormatted.trim().endsWith('59')) {
+	// 	console.log('PRICE::', price, String(price).includes('.') ? '' : '   ', 'TIME::', timeFormatted);
+	// }
 	return isLate(ts)
 		? amendCandle(payload)
 		: isEarly(time)
