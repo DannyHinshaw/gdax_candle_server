@@ -44,16 +44,18 @@ export const closeCandle = (): any => {
 
 	candles.push(candle);
 
-	if (NEXT_CANDLE.length) {
+	// Reset the current candle
+	if (NEXT_CANDLE && NEXT_CANDLE.length) {
 		CURRENT_CANDLE = NEXT_CANDLE;
-		NEXT_CANDLE = [];
 	} else {
 		CURRENT_CANDLE = [];
 	}
+	NEXT_CANDLE = [];
+
 	// return logger.log('info', `Closed candle: ${candle}`);
 	// FIXME: Easy read for GDAX testing.
-	const gdaxCandle: string = `O: ${candle[3]}, H: ${candle[2]}, L: ${candle[1]}, C: ${candle[4]}, V: ${candle[5]}`;
-	return logger.log('info', `Closed candle: \n${gdaxCandle}`);
+	// const gdaxCandle: string = `O: ${candle[3]}, H: ${candle[2]}, L: ${candle[1]}, C: ${candle[4]}, V: ${candle[5]}`;
+	// return logger.log('info', `Closed candle: \n${gdaxCandle}`);
 };
 
 /**
