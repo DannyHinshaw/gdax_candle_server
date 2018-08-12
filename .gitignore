@@ -1,5 +1,5 @@
-# SQLite Database
-gdax_bot_db
+# Personal config
+config.ts
 
 .idea/*
 .DS_Store
