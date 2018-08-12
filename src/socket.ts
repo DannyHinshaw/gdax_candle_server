@@ -11,7 +11,7 @@ import {candleSwitch} from './candles';
  =================================================================*/
 
 /**
- * Starts GDAX live order-book and serves as main entry point to bot.
+ * Starts GDAX live order-book and serves as main entry point to data processing.
  * @returns {Promise<GDAXFeed>} - Main data-feed pipeline.
  */
 export const initSocket = () => {

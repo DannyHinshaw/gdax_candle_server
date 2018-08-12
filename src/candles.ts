@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import {TradeMessage} from 'gdax-trading-toolkit/build/src/core';
 import {roundToCurrentMinute, roundToCurrentMinuteMS} from '../utils/time';
-import {logger} from '../utils/logger';
 
 
 let CURRENT_CANDLE: number[] = [];
@@ -13,6 +12,7 @@ interface CandlePayloadInterface {
 	price: number
 	size: number
 }
+
 
 /**
  * Return uncached candles history with the latest current running candle.
@@ -37,9 +37,9 @@ export const closeCandle = (): any => {
 	const candle: number[] = CURRENT_CANDLE.length
 		? CURRENT_CANDLE
 		: updateCandle([], {
-			time : moment().unix() - 5, // Current time with 5 second buffer
+			time: moment().unix() - 5, // Current time with 5 second buffer
 			price: candles[candles.length - 1][4], // Last candle close price
-			size : 0
+			size: 0
 		});
 
 	candles.push(candle);
@@ -51,11 +51,6 @@ export const closeCandle = (): any => {
 		CURRENT_CANDLE = [];
 	}
 	NEXT_CANDLE = [];
-
-	// return logger.log('info', `Closed candle: ${candle}`);
-	// FIXME: Easy read for GDAX testing.
-	// const gdaxCandle: string = `O: ${candle[3]}, H: ${candle[2]}, L: ${candle[1]}, C: ${candle[4]}, V: ${candle[5]}`;
-	// return logger.log('info', `Closed candle: \n${gdaxCandle}`);
 };
 
 /**
@@ -73,14 +68,14 @@ const updateCandle = (cc: number[], {time, price, size}): number[] => {
 		// low
 		cc.length
 			? cc[1] > price
-				? price : cc[1]
-				: price,
+			? price : cc[1]
+			: price,
 
 		// high
 		cc.length
 			? cc[2] < price
-				? price : cc[2]
-				: price,
+			? price : cc[2]
+			: price,
 
 		// open
 		cc.length
@@ -160,16 +155,12 @@ const maintainNextCandle = (payload: CandlePayloadInterface): number[] => {
  * @returns {number | number[]}
  */
 export const candleSwitch = (msg: TradeMessage) => {
-	const ts   : number = moment(msg.time).valueOf();
-	const time : number = moment(msg.time).unix();
+	const ts: number = moment(msg.time).valueOf();
+	const time: number = moment(msg.time).unix();
 	const price: number = +msg.price;
-	const size : number = +msg.size;
+	const size: number = +msg.size;
 	const payload: CandlePayloadInterface = {time: time, price: price, size: size};
-	const timeFormatted: string = msg.time.toLocaleTimeString();
 
-	// if (timeFormatted.trim().endsWith('00') || timeFormatted.trim().endsWith('59')) {
-	// 	console.log('PRICE::', price, String(price).includes('.') ? '' : '   ', 'TIME::', timeFormatted);
-	// }
 	return isLate(ts)
 		? amendCandle(payload)
 		: isEarly(time)

@@ -5,6 +5,11 @@ import {routes} from './src/routes';
 import {initCron} from './src/cron';
 
 
+/*
+ Bootstrap the api
+ ======================================= */
+
+
 const app: express.Application = express();
 routes(app);
 

@@ -4,12 +4,14 @@ import {Request, RequestHandler, Response} from 'express-serve-static-core';
 import {logger} from '../utils/logger';
 import {getCandles} from './candles';
 
+
 // create application/json parser
 const jsonParser: RequestHandler = bodyParser.json();
 
-// create application/x-www-form-urlencoded parser
-const urlencodedParser: RequestHandler = bodyParser.urlencoded({ extended: false });
-
+/**
+ * Define the express server api routes.
+ * @param app
+ */
 export const routes = (app: express.Application) => {
 
 	// GET Root (api health check)
